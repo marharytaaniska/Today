@@ -136,7 +136,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 24px;
+  gap: 12px;
   overflow: hidden;
 }
 .metric-indicator {
@@ -301,7 +301,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 24px;
+  gap: 0;
   height: 100px;
   overflow: hidden;
 }
