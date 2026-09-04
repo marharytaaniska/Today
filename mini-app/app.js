@@ -34,9 +34,9 @@
   if (cta) {
     cta.addEventListener('click', () => {
       if (tg && tg.showAlert) {
-        tg.showAlert('Здесь будет форма ввода уровня глюкозы (пока не реализовано).');
+        tg.showAlert('The glucose entry form will go here (not implemented yet).');
       } else {
-        alert('Здесь будет форма ввода уровня глюкозы (пока не реализовано).');
+        alert('The glucose entry form will go here (not implemented yet).');
       }
     });
   }
