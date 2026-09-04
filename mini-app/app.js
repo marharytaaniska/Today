@@ -115,17 +115,16 @@
       healthScore.style.position = healthScore.style.top = healthScore.style.left = healthScore.style.right = '';
       healthScore.style.paddingTop = '';
       summary.style.position = summary.style.top = summary.style.left = summary.style.right = '';
+      summary.style.pointerEvents = '';
       mascot.style.top = mascot.style.left = mascot.style.width = mascot.style.height = '';
       bgGradient.style.top = bgGradient.style.height = '';
       heroFull.style.height = heroFull.style.top = '';
       scoreNum.style.fontSize = scorePercent.style.fontSize = scoreTitle.style.fontSize = '';
-      scoreSub.style.maxHeight = scoreSub.style.opacity = '';
-      calendarRow.style.height = calendarRow.style.paddingTop = calendarRow.style.opacity = '';
-      calendarRow.style.pointerEvents = '';
-      summary.style.paddingTop = summary.style.gap = '';
-      metricCards.forEach((card) => { card.style.height = card.style.padding = card.style.opacity = ''; });
+      scoreSub.style.opacity = '';
+      calendarRow.style.opacity = calendarRow.style.pointerEvents = '';
+      metricCards.forEach((card) => { card.style.opacity = card.style.pointerEvents = ''; });
       metricCardChildren.forEach((children) => children.forEach((el) => { el.style.opacity = ''; }));
-      advice.style.height = advice.style.paddingTop = advice.style.paddingBottom = advice.style.opacity = '';
+      advice.style.opacity = advice.style.pointerEvents = '';
       adviceChildren.forEach((el) => { el.style.opacity = ''; });
 
       const heroRectTop = heroFull.getBoundingClientRect().top;
@@ -141,15 +140,6 @@
         scoreNumSize: parseFloat(getComputedStyle(scoreNum).fontSize),
         scorePercentSize: parseFloat(getComputedStyle(scorePercent).fontSize),
         scoreTitleSize: parseFloat(getComputedStyle(scoreTitle).fontSize),
-        scoreSubHeight: scoreSub.offsetHeight,
-        calendarRowHeight: calendarRow.offsetHeight,
-        summaryPaddingTop: parseFloat(getComputedStyle(summary).paddingTop),
-        summaryGap: parseFloat(getComputedStyle(summary).rowGap || getComputedStyle(summary).gap) || 0,
-        metricCardHeight: metricCards[0].offsetHeight,
-        metricCardPadding: parseFloat(getComputedStyle(metricCards[0]).paddingTop),
-        adviceHeight: advice.offsetHeight,
-        advicePaddingTop: parseFloat(getComputedStyle(advice).paddingTop),
-        advicePaddingBottom: parseFloat(getComputedStyle(advice).paddingBottom),
       };
 
       // Свёрнутые top для маскота/score — от реального safe-area, а не из
@@ -180,8 +170,6 @@
       healthScore.style.left = healthScore.style.right = '0';
       summary.style.position = 'absolute';
       summary.style.left = summary.style.right = '0';
-      scoreSub.style.overflow = 'hidden';
-      calendarRow.style.overflow = 'hidden';
 
       update();
     };
@@ -252,44 +240,34 @@
       scoreNum.style.fontSize = lerp(full.scoreNumSize, compact.scoreNumSize, progress) + 'px';
       scorePercent.style.fontSize = lerp(full.scorePercentSize, compact.scorePercentSize, progress) + 'px';
       scoreTitle.style.fontSize = lerp(full.scoreTitleSize, compact.scoreTitleSize, progress) + 'px';
-      // "Updated just now" в свёрнутом виде отсутствует — гасим и схлопываем чуть быстрее прогресса.
-      const subProgress = Math.min(progress / 0.6, 1);
-      scoreSub.style.opacity = String(1 - subProgress);
-      scoreSub.style.maxHeight = lerp(full.scoreSubHeight, 0, subProgress) + 'px';
+      // "Updated just now" — только прозрачность, без схлопывания высоты.
+      scoreSub.style.opacity = String(1 - Math.min(progress / 0.6, 1));
 
-      // Дата уходит первой — гаснет через прозрачность и одновременно
-      // схлопывается по высоте (иначе после её исчезновения осталась бы
-      // пустая "дыра", т.к. score/summary теперь позиционируются явно).
+      // Все второстепенные блоки ниже пропадают ТОЛЬКО через прозрачность —
+      // их собственные высота/padding остаются исходными, без деформации
+      // (по явному запросу). Порядок — по очереди: сначала дата, потом
+      // совет, затем Stress/Energy (см. окна stagger() выше).
       calendarRow.style.opacity = String(1 - calendarProgress);
-      calendarRow.style.height = lerp(full.calendarRowHeight, 0, calendarProgress) + 'px';
-      calendarRow.style.paddingTop = lerp(8, 0, calendarProgress) + 'px';
-      calendarRow.style.pointerEvents = calendarProgress > 0.5 ? 'none' : '';
+      calendarRow.style.pointerEvents = calendarProgress >= 1 ? 'none' : '';
 
-      // Summary (Stress/Energy + совет): весь блок идёт сразу под текущим
-      // низом score (даже когда тот меняет высоту из-за уменьшения шрифта).
+      // Summary (Stress/Energy + совет): блок идёт сразу под текущим низом
+      // score (даже когда тот меняет высоту из-за уменьшения шрифта), сам
+      // не схлопывается — а раз к концу скролла он весь прозрачный и может
+      // визуально перекрывать CTA/Pinned под собой, отключаем ему клики.
       summary.style.top = (scoreTop + healthScore.offsetHeight) + 'px';
+      summary.style.pointerEvents = progress >= 1 ? 'none' : '';
 
-      // Совет пропадает вторым.
       advice.style.opacity = String(1 - adviceProgress);
-      advice.style.height = lerp(full.adviceHeight, 0, adviceProgress) + 'px';
-      advice.style.paddingTop = lerp(full.advicePaddingTop, 0, adviceProgress) + 'px';
-      advice.style.paddingBottom = lerp(full.advicePaddingBottom, 0, adviceProgress) + 'px';
+      advice.style.pointerEvents = adviceProgress >= 1 ? 'none' : '';
       adviceChildren.forEach((el) => { el.style.opacity = String(1 - adviceProgress); });
 
-      // Карточки Stress/Energy пропадают последними.
       metricCards.forEach((card) => {
         card.style.opacity = String(1 - cardsProgress);
-        card.style.height = lerp(full.metricCardHeight, 0, cardsProgress) + 'px';
-        card.style.padding = lerp(full.metricCardPadding, 0, cardsProgress) + 'px';
+        card.style.pointerEvents = cardsProgress >= 1 ? 'none' : '';
       });
       metricCardChildren.forEach((children) => {
         children.forEach((el) => { el.style.opacity = String(1 - cardsProgress); });
       });
-
-      // paddingTop/gap самого summary схлопываем по общему progress — к моменту,
-      // когда все три блока внутри уже погасли, они не оставляют зазора.
-      summary.style.paddingTop = lerp(full.summaryPaddingTop, 0, progress) + 'px';
-      summary.style.gap = lerp(full.summaryGap, 0, progress) + 'px';
     };
 
     const onScroll = () => {
