@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mini-app",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "http-server", "mini-app", "-p", "4173", "-c-1"],
+      "port": 4173
+    }
+  ]
+}
