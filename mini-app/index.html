@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>My Health — Telegram Mini App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<!-- Telegram Web App SDK: даёт доступ к теме, кнопкам, данным пользователя и т.д. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+<div class="frame" id="app">
+
+  <!-- Статус-бар (в реальном Mini App его рисует сам Telegram, оставлено для превью) -->
+  <div class="status-bar">
+    <span class="time">09:41</span>
+    <div class="status-icons">
+      <img src="https://www.figma.com/api/mcp/asset/aef8d89b-a884-44d1-81ab-c136a2a35734.svg" alt="" />
+      <img src="https://www.figma.com/api/mcp/asset/a67d5255-8073-45ad-a74c-7f6334da0ae5.svg" alt="" />
+      <img src="https://www.figma.com/api/mcp/asset/caffa0c5-3218-4c3c-a9ad-62db3b685ad2.svg" alt="" />
+    </div>
+  </div>
+
+  <div class="bg-gradient" style="background-image:url('https://www.figma.com/api/mcp/asset/02796831-a6ea-4b2a-a1df-aaab49269124.svg')"></div>
+
+  <!-- Шапка с датой -->
+  <div class="calendar-row">
+    <p class="date">1 сентября</p>
+    <button class="icon-btn" aria-label="Календарь">
+      <img src="https://www.figma.com/api/mcp/asset/79ffc9da-7dc9-4d4e-ba4f-cf7bbbc963f5.svg" alt="" />
+    </button>
+  </div>
+
+  <!-- Маскот -->
+  <div class="mascot">
+    <img src="https://www.figma.com/api/mcp/asset/52c047fe-d700-4296-a4c6-caec9e0b373d.svg" alt="" class="mascot-body" />
+    <img src="https://www.figma.com/api/mcp/asset/4ba33ad4-5154-4af1-ab8f-fb7476f283df.svg" alt="" class="mascot-shape" />
+  </div>
+
+  <!-- Health score -->
+  <div class="health-score">
+    <div class="score-value"><span class="score-num">95</span><span class="score-percent">%</span></div>
+    <p class="score-title">Отличный показатель здоровья</p>
+    <p class="score-sub">Обновлено только что</p>
+  </div>
+
+  <!-- Stress / Energy + Advice -->
+  <section class="summary">
+    <div class="summary-cards">
+      <div class="metric-card">
+        <div class="metric-indicator good"></div>
+        <div class="metric-top">
+          <span class="metric-label">Стресс</span>
+        </div>
+        <div class="metric-value"><span class="num">8</span><span class="unit">bpm</span></div>
+        <div class="metric-graph">
+          <div class="bar" style="height:7px;background:linear-gradient(180deg,#7f2800,#f6a989)"></div>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-indicator good"></div>
+        <div class="metric-top">
+          <span class="metric-label">Энергия</span>
+        </div>
+        <div class="metric-value"><span class="num">96</span><span class="unit">bpm</span></div>
+        <div class="metric-graph">
+          <div class="bar" style="height:54px;background:linear-gradient(0deg,#a5dac3,#007844)"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="advice">
+      <p><span>Ты молодец —</span> <strong>продолжай в том же духе</strong></p>
+      <img src="https://www.figma.com/api/mcp/asset/8cff882d-0ec3-4427-8e89-648f7b35bc6a.svg" alt="" class="advice-mascot" />
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <button class="cta-button">
+    <img src="https://www.figma.com/api/mcp/asset/af096df3-3d7f-4b78-8e0d-5b06ba9e8d2a.svg" alt="" />
+    <span>Записать глюкозу</span>
+  </button>
+
+  <!-- Pinned -->
+  <section class="pinned">
+    <div class="pinned-title">
+      <h2>Закреплённое</h2>
+      <button class="edit-btn">
+        <img src="https://www.figma.com/api/mcp/asset/4faa7138-7623-40bf-b09c-e9b554a0f863.svg" alt="" />
+        <span>Изменить</span>
+      </button>
+    </div>
+
+    <!-- Glucose Level -->
+    <div class="block">
+      <div class="block-heading">
+        <img class="drop" src="https://www.figma.com/api/mcp/asset/3f5d55ff-bad7-4f59-b40d-d36c72901b43.svg" alt="" />
+        <h3>Уровень глюкозы</h3>
+        <img class="chevron" src="https://www.figma.com/api/mcp/asset/83cb3f8f-bd0a-4977-834a-f218a2a9bfe3.svg" alt="" />
+      </div>
+      <div class="card wide">
+        <div class="metric-indicator good"></div>
+        <div class="metric-value"><span class="num">92</span><span class="unit">mg/dL</span></div>
+        <span class="status-badge good">Хорошо</span>
+      </div>
+    </div>
+
+    <!-- Heart Data -->
+    <div class="block">
+      <div class="block-heading">
+        <img class="drop" src="https://www.figma.com/api/mcp/asset/3f5d55ff-bad7-4f59-b40d-d36c72901b43.svg" alt="" />
+        <h3>Данные сердца</h3>
+        <img class="chevron" src="https://www.figma.com/api/mcp/asset/83cb3f8f-bd0a-4977-834a-f218a2a9bfe3.svg" alt="" />
+      </div>
+      <div class="card">
+        <div class="metric-indicator good"></div>
+        <div class="metric-top"><span class="metric-label">Пульс</span><span class="status-badge good">Хорошо</span></div>
+        <div class="metric-value"><span class="num">62</span><span class="unit">bpm</span></div>
+      </div>
+      <div class="card">
+        <div class="metric-indicator good"></div>
+        <div class="metric-top"><span class="metric-label">HRV</span><span class="status-badge good">Хорошо</span></div>
+        <div class="metric-value"><span class="num">90</span><span class="unit">ms</span></div>
+      </div>
+    </div>
+
+    <!-- Activity -->
+    <div class="block">
+      <div class="block-heading">
+        <img class="drop" src="https://www.figma.com/api/mcp/asset/3f5d55ff-bad7-4f59-b40d-d36c72901b43.svg" alt="" />
+        <h3>Активность</h3>
+        <img class="chevron" src="https://www.figma.com/api/mcp/asset/83cb3f8f-bd0a-4977-834a-f218a2a9bfe3.svg" alt="" />
+      </div>
+      <div class="card">
+        <div class="metric-top"><span class="metric-label">Калории</span></div>
+        <div class="metric-value"><span class="num">420</span><span class="unit">kcal</span></div>
+      </div>
+      <div class="card">
+        <div class="metric-top"><span class="metric-label">Шаги</span></div>
+        <div class="metric-value"><span class="num">6 800</span><span class="unit">шагов</span></div>
+      </div>
+      <div class="card">
+        <div class="metric-top"><span class="metric-label">Дистанция</span></div>
+        <div class="metric-value"><span class="num">3.1</span><span class="unit">км</span></div>
+      </div>
+    </div>
+
+    <!-- Sleep -->
+    <div class="block">
+      <div class="block-heading">
+        <img class="drop" src="https://www.figma.com/api/mcp/asset/3f5d55ff-bad7-4f59-b40d-d36c72901b43.svg" alt="" />
+        <h3>Сон</h3>
+        <img class="chevron" src="https://www.figma.com/api/mcp/asset/83cb3f8f-bd0a-4977-834a-f218a2a9bfe3.svg" alt="" />
+      </div>
+      <div class="card wide">
+        <div class="metric-value"><span class="num">7</span><span class="unit-inline">ч</span><span class="num">42</span><span class="unit-inline">м</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active">
+      <img src="https://www.figma.com/api/mcp/asset/5758d25d-0dc8-470f-95f3-b83e1760f3af.svg" alt="" />
+      <span>Здоровье</span>
+    </button>
+    <button class="nav-item">
+      <img src="https://www.figma.com/api/mcp/asset/8cff882d-0ec3-4427-8e89-648f7b35bc6a.svg" alt="" />
+      <span>Профиль</span>
+    </button>
+    <button class="nav-item">
+      <img src="https://www.figma.com/api/mcp/asset/8aafc401-dc5a-4c5e-8b69-774a71f4455e.svg" alt="" />
+      <span>Настройки</span>
+    </button>
+    <div class="home-indicator"></div>
+  </nav>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
