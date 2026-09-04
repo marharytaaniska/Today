@@ -86,7 +86,7 @@ body {
   position: absolute;
   z-index: 1;
   left: -1px;
-  top: 142px;
+  top: 154px;
   width: 150px;
   height: 110px;
 }
@@ -218,7 +218,7 @@ body {
 .advice-mascot {
   position: absolute;
   right: -24px;
-  bottom: -12px;
+  bottom: 0;
   width: 68px;
   height: 74px;
   opacity: 0.9;
