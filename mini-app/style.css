@@ -339,17 +339,6 @@ body {
   background: var(--color-bg-surface-secondary);
   color: var(--color-brand-default);
 }
-.home-indicator {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  transform: translateX(-50%);
-  width: 140px;
-  height: 4px;
-  background: var(--color-text-primary);
-  border-radius: var(--radius-full);
-}
-
 /* Внутри Telegram у Mini App нет "рамки" телефона и серого фона превью — тут только для превью в браузере */
 body.tg {
   padding: 0;
