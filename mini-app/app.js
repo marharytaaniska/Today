@@ -76,10 +76,11 @@
   const advice = summary && summary.querySelector('.advice');
   const ctaButton = document.querySelector('.cta-button');
   const ctaSpacer = document.getElementById('ctaSpacer');
+  const pinned = document.querySelector('.pinned');
 
   if (scroller && heroFull && bgGradient && calendarRow && mascot && healthScore
       && scoreNum && scorePercent && scoreTitle && scoreSub && summary
-      && metricCards.length && advice && ctaButton && ctaSpacer) {
+      && metricCards.length && advice && ctaButton && ctaSpacer && pinned) {
     const COMPACT_HEIGHT = 114; // высота свёрнутой зелёной плашки
     const FULL_BG_HEIGHT = 350; // высота полотна градиента в развёрнутом виде
     // Оценка высоты компактного блока score (число+% и заголовок) при
@@ -139,6 +140,26 @@
       const heroRectTop = heroFull.getBoundingClientRect().top;
       const fullHeight = heroFull.offsetHeight;
 
+      // В Telegram (body.tg) у .frame есть padding-top под safe-area (чёлку).
+      // .hero-full в естественном (нерастянутом) состоянии стоит не на
+      // viewport-0, а на framePaddingTop — и это "лишнее" расстояние тоже
+      // нужно проехать при сжатии, иначе после прилипания собственная
+      // (жёсткая) высота .hero-full будет заканчиваться на
+      // framePaddingTop px НИЖЕ видимой зелёной плашки, и на этом сером
+      // "хвосте" (у которого z-index выше контента, см. .hero-full) будет
+      // повисать всё, что должно идти сразу под шапкой — включая кнопку.
+      framePaddingTop = parseFloat(getComputedStyle(scroller).paddingTop) || 0;
+
+      // Фиксируем итоговые height/top у .hero-full СРАЗУ — до того, как ниже
+      // измеряем позиции кнопки/спейсера/Pinned (они идут ПОСЛЕ .hero-full в
+      // DOM). Если задать их позже, эти измерения попадут на ещё старую
+      // (из прошлого measure(), например до появления safe-area) высоту
+      // .hero-full, а не на актуальную — из-за чего .pinned мог измеряться
+      // с ошибкой в десятки пикселей и потом наезжал на кнопку.
+      collapseDistance = Math.max(fullHeight - COMPACT_HEIGHT + framePaddingTop, 1);
+      heroFull.style.height = fullHeight + 'px';
+      heroFull.style.top = -collapseDistance + 'px';
+
       full = {
         mascotTop: mascot.getBoundingClientRect().top - heroRectTop,
         mascotLeft: mascot.offsetLeft,
@@ -154,12 +175,40 @@
         // её движение при скролле искусственно "придерживается" (см. ctaEase
         // в update()) и доезжает до места в самом конце, а не сразу 1:1.
         ctaDocTop: ctaButton.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop,
+        ctaSpacerNaturalHeight: ctaButton.offsetHeight + parseFloat(getComputedStyle(ctaButton).marginTop),
       };
 
-      // Кнопка становится position:absolute и перестаёт резервировать место в
-      // потоке — без спейсера с её прежним "футпринтом" (margin-top + высота)
-      // .pinned немедленно съезжал бы вверх, на место кнопки.
-      ctaSpacer.style.height = (ctaButton.offsetHeight + parseFloat(getComputedStyle(ctaButton).marginTop)) + 'px';
+      // Кнопка становится position:absolute (относительно #app, а не
+      // .hero-full — .frame и так position:relative), чтобы придержать её
+      // движение и не дать ей наехать на ещё не погасший совет/карточки
+      // (см. ctaEase в update()). left/right вместо изначальных margin —
+      // иначе margin-top сложился бы с нашим top ещё раз.
+      ctaButton.style.position = 'absolute';
+      ctaButton.style.left = ctaButton.style.right = '16px';
+      ctaButton.style.margin = '0';
+
+      // .ctaSpacer резервирует место кнопки в потоке вместо неё самой. Его
+      // "точку привязки" (currentSpacerDocTop) меряем ИМЕННО СЕЙЧАС: кнопка
+      // уже absolute (не даёт своего вклада в поток), а высота спейсера пока
+      // ещё 0 (после сброса) — то есть currentSpacerDocTop это именно то
+      // место, куда встанет верх спейсера независимо от его будущей высоты.
+      // Если измерить его раньше (пока кнопка ещё в потоке) или позже
+      // (когда высота уже выставлена), в это число один раз лишний
+      // просочится "футпринт" кнопки — из-за чего .pinned измерялся с
+      // ошибкой ровно в 88px и в итоге наезжал на кнопку.
+      full.ctaSpacerDocTop = ctaSpacer.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      ctaSpacer.style.height = full.ctaSpacerNaturalHeight + 'px';
+
+      // .pinned — обычный элемент потока (длинный список, его нельзя просто
+      // взять и сделать position:absolute, не потеряв скролл-высоту).
+      // Чтобы он не обгонял придержанную кнопку и не наезжал на неё сверху,
+      // "придерживаем" вместо самого .pinned — высоту .ctaSpacer перед ним:
+      // тот же ease, но выраженный через схлопывание высоты спейсера, а не
+      // прямое позиционирование .pinned. Измеряем ТОЛЬКО теперь, когда кнопка
+      // уже стала absolute и спейсер уже занял её место в потоке — иначе
+      // "футпринт" кнопки посчитался бы дважды (и от самой кнопки, и от
+      // спейсера) и .pinned измерился бы на 88px ниже, чем на самом деле.
+      full.pinnedDocTop = pinned.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
 
       // Центрируем маскота и блок score по вертикали в пространстве плашки,
       // которое реально остаётся под safe-area (чёлкой/статус-баром).
@@ -167,20 +216,6 @@
       const availableHeight = COMPACT_HEIGHT - safeAreaTop;
       compact.mascotTop = safeAreaTop + (availableHeight - compact.mascotHeight) / 2;
       compact.scoreTop = safeAreaTop + (availableHeight - COMPACT_SCORE_CONTENT_HEIGHT) / 2;
-
-      collapseDistance = Math.max(fullHeight - COMPACT_HEIGHT, 1);
-      heroFull.style.height = fullHeight + 'px';
-      heroFull.style.top = -collapseDistance + 'px';
-
-      // В Telegram (body.tg) у .frame есть padding-top под safe-area (чёлку) —
-      // sticky-офсет hero-full отсчитывается от ВНУТРЕННЕГО (padding) края
-      // контейнера, поэтому первые framePaddingTop px скролла уходят на то,
-      // чтобы проскроллить этот padding, и только потом hero-full реально
-      // начинает двигаться. Без поправки на это наши progress/scrollAmt
-      // "убегают" вперёд настоящего сжатия — из-за чего CTA-кнопка наезжала
-      // на score (кнопка, в отличие от score/mascot, позиционируется самим
-      // браузером, а не нашей формулой, и знает о padding сама).
-      framePaddingTop = parseFloat(getComputedStyle(scroller).paddingTop) || 0;
 
       // .health-score и .summary переводим в position:absolute — им нужно
       // самим управлять своей позицией (score едет к компактной точке, а
@@ -191,15 +226,6 @@
       summary.style.position = 'absolute';
       summary.style.left = summary.style.right = '0';
 
-      // Кнопку тоже переводим в position:absolute (относительно #app, а не
-      // .hero-full — .frame и так position:relative), чтобы придержать её
-      // движение и не дать ей наехать на ещё не погасший совет/карточки
-      // (см. ctaEase в update()). left/right вместо изначальных margin —
-      // иначе margin-top сложился бы с нашим top ещё раз.
-      ctaButton.style.position = 'absolute';
-      ctaButton.style.left = ctaButton.style.right = '16px';
-      ctaButton.style.margin = '0';
-
       update();
     };
 
@@ -209,8 +235,7 @@
 
       const scrollTop = scroller.scrollTop;
       // Порог, при котором .hero-full "прилипает", — ровно collapseDistance
-      // (framePaddingTop на него не влияет: sticky начинает двигаться сразу
-      // с scrollTop=0, а не после проскроливания padding).
+      // (которая уже учитывает framePaddingTop — см. measure()).
       const progress = Math.min(Math.max(scrollTop / collapseDistance, 0), 1);
 
       // Реальная viewport-позиция верхнего края .hero-full. До прилипания она
@@ -304,9 +329,9 @@
       // под советом, так что при обычном 1:1-скролле она наезжала бы на
       // совет/карточки задолго до того, как те успевали погаснуть. Вместо
       // изменения их геометрии (это как раз то, чего просили избежать)
-      // "придерживаем" саму кнопку — кубическая ease-in кривая по её
-      // VIEWPORT-позиции: почти не двигается в начале скролла (пока контент
-      // ещё виден) и быстро доезжает до места к моменту полного сжатия шапки.
+      // "придерживаем" саму кнопку — ease-in кривая по её VIEWPORT-позиции:
+      // почти не двигается в начале скролла (пока контент ещё виден) и
+      // быстро доезжает до места к моменту полного сжатия шапки.
       // .cta-button — position:absolute внутри обычного (не sticky) #app,
       // поэтому чтобы получить конкретную viewport-позицию, достаточно
       // прибавить текущий scrollTop обратно к цели — при рендере браузер
@@ -320,6 +345,22 @@
       const extraScroll = Math.max(scrollTop - collapseDistance, 0);
       const ctaViewportTarget = lerp(full.ctaDocTop, COMPACT_HEIGHT + 32, ctaEase) - extraScroll;
       ctaButton.style.top = (ctaViewportTarget + scrollTop) + 'px';
+
+      // .pinned — обычный, очень длинный элемент потока: его саму в
+      // position:absolute не переводим (пришлось бы городить отдельный
+      // спейсер на всю её высоту, чтобы не потерять высоту скролла). Вместо
+      // этого "придерживаем" её тем же ease, но через схлопывание высоты
+      // .ctaSpacer перед ней — визуально Pinned едет вместе с кнопкой, а
+      // технически это по-прежнему чистый, ничем не потревоженный поток.
+      //
+      // Цель для Pinned выводим НАПРЯМУЮ из уже посчитанной viewport-позиции
+      // кнопки (ctaViewportTarget + её высота), а не отдельной, параллельной
+      // lerp-формулой — так зазор между ними формулой гарантирован строго
+      // нулевым при любых scrollTop/safe-area, а не "почти нулевым" только
+      // потому, что обе формулы совпадают арифметически.
+      const pinnedViewportTarget = ctaViewportTarget + ctaButton.offsetHeight;
+      const neededSpacerHeight = pinnedViewportTarget + scrollTop - full.ctaSpacerDocTop;
+      ctaSpacer.style.height = Math.max(neededSpacerHeight, 0) + 'px';
     };
 
     const onScroll = () => {
