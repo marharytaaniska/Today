@@ -350,7 +350,11 @@ body {
   border-radius: var(--radius-full);
 }
 
-/* Внутри Telegram у Mini App нет "рамки" телефона — она здесь только для превью в браузере */
+/* Внутри Telegram у Mini App нет "рамки" телефона и серого фона превью — тут только для превью в браузере */
+body.tg {
+  padding: 0;
+  background: var(--color-bg-surface-secondary);
+}
 body.tg .frame {
   border-radius: 0;
   box-shadow: none;
