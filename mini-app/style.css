@@ -332,8 +332,12 @@ body {
 }
 .edit-btn img { width: 24px; height: 24px; }
 
-.block { display: flex; flex-direction: column; gap: 16px; }
+/* Раньше здесь был flex gap:16px, который складывался с margin-top:12px
+   у .card + .card (см. ниже), давая 28px между карточками вместо 12px.
+   Теперь весь вертикальный интервал внутри .block задаётся margin-ами. */
+.block { display: flex; flex-direction: column; }
 .block-heading { display: flex; align-items: center; gap: 8px; }
+.block-heading + .card { margin-top: 16px; }
 .block-heading .drop { width: 24px; height: 24px; }
 .block-heading h3 {
   flex: 1;

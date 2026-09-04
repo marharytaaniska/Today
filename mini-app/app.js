@@ -78,16 +78,20 @@
   if (scroller && heroFull && bgGradient && calendarRow && mascot && healthScore
       && scoreNum && scorePercent && scoreTitle && scoreSub && summary
       && metricCards.length && advice) {
-    const COMPACT_HEIGHT = 168; // высота свёрнутой зелёной плашки (макет Good-short)
+    const COMPACT_HEIGHT = 114; // высота свёрнутой зелёной плашки
     const FULL_BG_HEIGHT = 350; // высота полотна градиента в развёрнутом виде
+    // Оценка высоты компактного блока score (число+% и заголовок) при
+    // compact-размерах шрифта — нужна только чтобы центрировать его по
+    // вертикали в плашке; см. вычисление compact.scoreTop ниже.
+    const COMPACT_SCORE_CONTENT_HEIGHT = 72; // 48 (число) + 8 (margin) + 16 (заголовок)
 
-    // Свёрнутые значения — из макета Good-short в Figma (координаты внутри .hero-full).
-    // В самом макете Good-short сверху есть мокап системного статус-бара
-    // (~62px), которого в реальном приложении нет — вместо него используется
-    // настоящий safe-area-inset устройства. Поэтому scoreTop/mascotTop не
-    // берём буквально из макета (78/84), а отсчитываем от реального отступа
-    // safe-area: раз строки с датой больше нет, маскот и score поднимаются
-    // и встают сразу под чёлкой/статус-баром, а не оставляют пустое место.
+    // Свёрнутые значения. Раньше scoreTop/mascotTop брались из макета
+    // Good-short в Figma (78/84px), но тот макет сверху резервирует место под
+    // мокап системного статус-бара (~62px), которого в реальном приложении
+    // нет — вместо него используется настоящий safe-area-inset устройства.
+    // Поэтому вместо жёстких чисел центрируем маскота и блок score по
+    // вертикали в доступном пространстве плашки (COMPACT_HEIGHT за вычетом
+    // safe-area) — см. вычисление в measure() ниже.
     const compact = {
       mascotLeft: 0, mascotWidth: 115, mascotHeight: 84,
       scoreNumSize: 48, scorePercentSize: 32, scoreTitleSize: 16,
@@ -142,11 +146,12 @@
         scoreTitleSize: parseFloat(getComputedStyle(scoreTitle).fontSize),
       };
 
-      // Свёрнутые top для маскота/score — от реального safe-area, а не из
-      // макета (см. комментарий у объявления compact выше).
+      // Центрируем маскота и блок score по вертикали в пространстве плашки,
+      // которое реально остаётся под safe-area (чёлкой/статус-баром).
       const safeAreaTop = getSafeAreaTop();
-      compact.mascotTop = 22 + safeAreaTop;
-      compact.scoreTop = 16 + safeAreaTop;
+      const availableHeight = COMPACT_HEIGHT - safeAreaTop;
+      compact.mascotTop = safeAreaTop + (availableHeight - compact.mascotHeight) / 2;
+      compact.scoreTop = safeAreaTop + (availableHeight - COMPACT_SCORE_CONTENT_HEIGHT) / 2;
 
       collapseDistance = Math.max(fullHeight - COMPACT_HEIGHT, 1);
       heroFull.style.height = fullHeight + 'px';
@@ -201,11 +206,13 @@
 
       // Стаггер: возвращает 0..1 внутри своего [start; end] окна общего
       // progress — так дата/совет/карточки пропадают не одновременно, а по
-      // очереди: сначала дата, потом совет, затем Stress/Energy.
+      // очереди: сначала дата, потом совет, затем Stress/Energy. Окна НЕ
+      // пересекаются — иначе следующий блок начинал гаснуть раньше, чем
+      // предыдущий успевал уйти (совет заметно таял почти сразу же).
       const stagger = (start, end) => Math.min(Math.max((progress - start) / (end - start), 0), 1);
-      const calendarProgress = stagger(0, 0.25);
-      const adviceProgress = stagger(0.2, 0.6);
-      const cardsProgress = stagger(0.55, 1);
+      const calendarProgress = stagger(0, 0.3);
+      const adviceProgress = stagger(0.3, 0.65);
+      const cardsProgress = stagger(0.65, 1);
 
       // full.mascotTop/scoreTop измерены как ЛОКАЛЬНЫЕ координаты (относительно
       // .hero-full), а compact.mascotTop/scoreTop — это уже VIEWPORT-цели
