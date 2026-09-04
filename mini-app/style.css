@@ -156,7 +156,7 @@ body {
   color: var(--color-text-secondary);
   letter-spacing: -0.32px;
 }
-.metric-value { display: flex; align-items: flex-end; gap: 2px; }
+.metric-value { display: flex; align-items: flex-end; gap: 4px; }
 .metric-value .num {
   font-weight: 500;
   font-size: 32px;
