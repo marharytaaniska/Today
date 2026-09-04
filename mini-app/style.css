@@ -150,9 +150,25 @@ body {
   text-align: center;
   padding-top: 48px;
 }
-.score-value { font-weight: 700; }
+.score-value { display: flex; justify-content: center; align-items: flex-end; font-weight: 700; }
 .score-num { font-size: 72px; letter-spacing: -1.44px; }
 .score-percent { font-size: 48px; letter-spacing: -0.96px; }
+
+/* Vertical trim (как в Figma) для пар "число + единица измерения": обрезает
+   line box по фактическим границам глифов (от верха прописных до базовой
+   линии), а не по метрикам шрифта со стандартным line-height. Без этого
+   разные по размеру num/unit выравнивались вручную через подобранные на
+   глаз padding — то же самое становится точным само по себе. Свойство
+   новое (Chrome 133+/Safari), поэтому это чистое прогрессивное улучшение:
+   там, где не поддерживается, просто остаётся текущее выравнивание. */
+.score-num,
+.score-percent,
+.metric-value .num,
+.metric-value .unit,
+.metric-value .unit-inline {
+  text-box-trim: trim-both;
+  text-box-edge: cap alphabetic;
+}
 .score-title {
   font-weight: 600;
   font-size: 18px;
@@ -219,7 +235,6 @@ body {
   font-size: 16px;
   color: var(--color-text-tertiary);
   letter-spacing: -0.32px;
-  padding-bottom: 4px;
 }
 .metric-value .unit-inline {
   font-weight: 600;
