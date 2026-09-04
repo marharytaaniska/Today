@@ -217,9 +217,10 @@ body {
 .advice p strong { font-weight: 600; }
 .advice-mascot {
   position: absolute;
-  right: -12px;
+  right: -24px;
   bottom: -12px;
   width: 92px;
+  height: 80px;
   opacity: 0.9;
 }
 
