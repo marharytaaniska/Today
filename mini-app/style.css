@@ -27,6 +27,7 @@ html, body {
   background: #dedede;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--color-text-primary);
+  line-height: 1;
 }
 
 body {
