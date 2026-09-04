@@ -79,6 +79,10 @@
     <img src="assets/icon-plus.svg" alt="" />
     <span>Log Glucose</span>
   </button>
+  <!-- Резервирует место кнопки в потоке — сама кнопка становится
+       position:absolute в app.js (см. комментарий там), чтобы её движение
+       при скролле можно было придержать и не дать наехать на совет/карточки. -->
+  <div class="cta-spacer" id="ctaSpacer"></div>
 
   <!-- Pinned -->
   <section class="pinned">

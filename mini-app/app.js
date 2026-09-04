@@ -74,10 +74,12 @@
   const summary = heroFull && heroFull.querySelector('.summary');
   const metricCards = summary ? Array.from(summary.querySelectorAll('.metric-card')) : [];
   const advice = summary && summary.querySelector('.advice');
+  const ctaButton = document.querySelector('.cta-button');
+  const ctaSpacer = document.getElementById('ctaSpacer');
 
   if (scroller && heroFull && bgGradient && calendarRow && mascot && healthScore
       && scoreNum && scorePercent && scoreTitle && scoreSub && summary
-      && metricCards.length && advice) {
+      && metricCards.length && advice && ctaButton && ctaSpacer) {
     const COMPACT_HEIGHT = 114; // высота свёрнутой зелёной плашки
     const FULL_BG_HEIGHT = 350; // высота полотна градиента в развёрнутом виде
     // Оценка высоты компактного блока score (число+% и заголовок) при
@@ -120,6 +122,9 @@
       healthScore.style.paddingTop = '';
       summary.style.position = summary.style.top = summary.style.left = summary.style.right = '';
       summary.style.pointerEvents = '';
+      ctaButton.style.position = ctaButton.style.top = ctaButton.style.left = ctaButton.style.right = '';
+      ctaButton.style.margin = '';
+      ctaSpacer.style.height = '';
       mascot.style.top = mascot.style.left = mascot.style.width = mascot.style.height = '';
       bgGradient.style.top = bgGradient.style.height = '';
       heroFull.style.height = heroFull.style.top = '';
@@ -144,7 +149,17 @@
         scoreNumSize: parseFloat(getComputedStyle(scoreNum).fontSize),
         scorePercentSize: parseFloat(getComputedStyle(scorePercent).fontSize),
         scoreTitleSize: parseFloat(getComputedStyle(scoreTitle).fontSize),
+        // Документная (не завязанная на текущий scrollTop) позиция кнопки —
+        // чтобы кнопка не заезжала на ещё не полностью погасшие совет/карточки,
+        // её движение при скролле искусственно "придерживается" (см. ctaEase
+        // в update()) и доезжает до места в самом конце, а не сразу 1:1.
+        ctaDocTop: ctaButton.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop,
       };
+
+      // Кнопка становится position:absolute и перестаёт резервировать место в
+      // потоке — без спейсера с её прежним "футпринтом" (margin-top + высота)
+      // .pinned немедленно съезжал бы вверх, на место кнопки.
+      ctaSpacer.style.height = (ctaButton.offsetHeight + parseFloat(getComputedStyle(ctaButton).marginTop)) + 'px';
 
       // Центрируем маскота и блок score по вертикали в пространстве плашки,
       // которое реально остаётся под safe-area (чёлкой/статус-баром).
@@ -175,6 +190,15 @@
       healthScore.style.left = healthScore.style.right = '0';
       summary.style.position = 'absolute';
       summary.style.left = summary.style.right = '0';
+
+      // Кнопку тоже переводим в position:absolute (относительно #app, а не
+      // .hero-full — .frame и так position:relative), чтобы придержать её
+      // движение и не дать ей наехать на ещё не погасший совет/карточки
+      // (см. ctaEase в update()). left/right вместо изначальных margin —
+      // иначе margin-top сложился бы с нашим top ещё раз.
+      ctaButton.style.position = 'absolute';
+      ctaButton.style.left = ctaButton.style.right = '16px';
+      ctaButton.style.margin = '0';
 
       update();
     };
@@ -275,6 +299,27 @@
       metricCardChildren.forEach((children) => {
         children.forEach((el) => { el.style.opacity = String(1 - cardsProgress); });
       });
+
+      // Кнопка "Log Glucose": в естественном потоке она стоит всего в 32px
+      // под советом, так что при обычном 1:1-скролле она наезжала бы на
+      // совет/карточки задолго до того, как те успевали погаснуть. Вместо
+      // изменения их геометрии (это как раз то, чего просили избежать)
+      // "придерживаем" саму кнопку — кубическая ease-in кривая по её
+      // VIEWPORT-позиции: почти не двигается в начале скролла (пока контент
+      // ещё виден) и быстро доезжает до места к моменту полного сжатия шапки.
+      // .cta-button — position:absolute внутри обычного (не sticky) #app,
+      // поэтому чтобы получить конкретную viewport-позицию, достаточно
+      // прибавить текущий scrollTop обратно к цели — при рендере браузер
+      // вычтет его снова (как для любого абсолютного потомка скроллящегося
+      // контейнера).
+      // progress уже зажат в [0;1], поэтому ease тоже останавливается на 1 —
+      // extraScroll докручивает кнопку дальше нормально (1:1), когда скролл
+      // продолжается уже ПОСЛЕ полного сжатия шапки (иначе кнопка застряла
+      // бы на месте вместо того, чтобы уезжать под шапку вместе с Pinned).
+      const ctaEase = progress * progress * progress * progress * progress;
+      const extraScroll = Math.max(scrollTop - collapseDistance, 0);
+      const ctaViewportTarget = lerp(full.ctaDocTop, COMPACT_HEIGHT + 32, ctaEase) - extraScroll;
+      ctaButton.style.top = (ctaViewportTarget + scrollTop) + 'px';
     };
 
     const onScroll = () => {
