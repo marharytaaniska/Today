@@ -37,12 +37,13 @@ body {
 .frame {
   position: relative;
   width: 393px;
-  min-height: 852px;
+  height: 852px;
   background: var(--color-bg-surface-secondary);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   border-radius: 40px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
-  padding-bottom: 100px;
 }
 
 .bg-gradient {
@@ -54,23 +55,6 @@ body {
   background-position: top;
   z-index: 0;
 }
-
-.status-bar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 44px;
-  padding: 12px 21px 0 24px;
-}
-.status-bar .time {
-  font-weight: 600;
-  font-size: 15px;
-  letter-spacing: -0.3px;
-}
-.status-icons { display: flex; align-items: center; gap: 6px; }
-.status-icons img { height: 12px; }
 
 .calendar-row {
   position: relative;
@@ -329,8 +313,8 @@ body {
 .block > .card + .card { margin-top: 12px; }
 
 .bottom-nav {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
+  position: sticky;
+  bottom: 0;
   z-index: 3;
   background: var(--color-bg-surface-primary);
   border-top: 1px solid var(--color-border-default);
@@ -375,4 +359,5 @@ body.tg .frame {
   box-shadow: none;
   width: 100%;
   max-width: 480px;
+  height: 100dvh;
 }
