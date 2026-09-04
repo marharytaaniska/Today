@@ -15,58 +15,64 @@
 
 <div class="frame" id="app">
 
-  <div class="bg-gradient" style="background-image:url('assets/bg-gradient.svg')"></div>
+  <!-- Шапка со score. Маскот и число score — это ОДНИ И ТЕ ЖЕ элементы в обоих
+       состояниях: при скролле их top/размер/font-size непрерывно интерполируются
+       от развёрнутого к свёрнутому виду (см. app.js), как сжатие в стиле Apple,
+       а не подмена одного блока на другой. -->
+  <div class="hero-full" id="heroFull">
+    <div class="bg-gradient" style="background-image:url('assets/bg-gradient.svg')"></div>
 
-  <!-- Шапка с датой -->
-  <div class="calendar-row">
-    <p class="date">September 1</p>
-    <button class="icon-btn" aria-label="Calendar">
-      <img src="assets/icon-calendar.svg" alt="" />
-    </button>
-  </div>
-
-  <!-- Маскот -->
-  <div class="mascot">
-    <img src="assets/Mascot-green-big.svg" alt="" class="mascot-img" />
-  </div>
-
-  <!-- Health score -->
-  <div class="health-score">
-    <div class="score-value"><span class="score-num">95</span><span class="score-percent">%</span></div>
-    <p class="score-title">Good health score</p>
-    <p class="score-sub">Updated just now</p>
-  </div>
-
-  <!-- Stress / Energy + Advice -->
-  <section class="summary">
-    <div class="summary-cards">
-      <div class="metric-card">
-        <div class="metric-indicator good"></div>
-        <div class="metric-top">
-          <span class="metric-label">Stress</span>
-        </div>
-        <div class="metric-value"><span class="num">8</span><span class="unit">bpm</span></div>
-        <div class="metric-graph">
-          <div class="bar" style="height:7px;background:linear-gradient(180deg,#7f2800,#f6a989)"></div>
-        </div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-indicator good"></div>
-        <div class="metric-top">
-          <span class="metric-label">Energy</span>
-        </div>
-        <div class="metric-value"><span class="num">96</span><span class="unit">bpm</span></div>
-        <div class="metric-graph">
-          <div class="bar" style="height:54px;background:linear-gradient(0deg,#a5dac3,#007844)"></div>
-        </div>
-      </div>
+    <!-- Шапка с датой -->
+    <div class="calendar-row">
+      <p class="date">September 1</p>
+      <button class="icon-btn" aria-label="Calendar">
+        <img src="assets/icon-calendar.svg" alt="" />
+      </button>
     </div>
 
-    <div class="advice">
-      <p><span>You're on a roll —</span> <strong>keep doing what you're doing</strong></p>
-      <img src="assets/Mascot-green-small.svg" alt="" class="advice-mascot" />
+    <!-- Маскот -->
+    <div class="mascot">
+      <img src="assets/Mascot-green-big.svg" alt="" class="mascot-img" />
     </div>
-  </section>
+
+    <!-- Health score -->
+    <div class="health-score">
+      <div class="score-value"><span class="score-num">95</span><span class="score-percent">%</span></div>
+      <p class="score-title">Good health score</p>
+      <p class="score-sub">Updated just now</p>
+    </div>
+
+    <!-- Stress / Energy + Advice -->
+    <section class="summary">
+      <div class="summary-cards">
+        <div class="metric-card">
+          <div class="metric-indicator good"></div>
+          <div class="metric-top">
+            <span class="metric-label">Stress</span>
+          </div>
+          <div class="metric-value"><span class="num">8</span><span class="unit">bpm</span></div>
+          <div class="metric-graph">
+            <div class="bar" style="height:7px;background:linear-gradient(180deg,#7f2800,#f6a989)"></div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-indicator good"></div>
+          <div class="metric-top">
+            <span class="metric-label">Energy</span>
+          </div>
+          <div class="metric-value"><span class="num">96</span><span class="unit">bpm</span></div>
+          <div class="metric-graph">
+            <div class="bar" style="height:54px;background:linear-gradient(0deg,#a5dac3,#007844)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="advice">
+        <p><span>You're on a roll —</span> <strong>keep doing what you're doing</strong></p>
+        <img src="assets/Mascot-green-small.svg" alt="" class="advice-mascot" />
+      </div>
+    </section>
+  </div>
 
   <!-- CTA -->
   <button class="cta-button">
