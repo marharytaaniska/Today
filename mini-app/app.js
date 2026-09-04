@@ -23,6 +23,16 @@
       const top = (tg.safeAreaInset && tg.safeAreaInset.top || 0)
         + (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top || 0);
       document.documentElement.style.setProperty('--tg-safe-area-top', top + 'px');
+      // safeAreaInset приходит от Telegram асинхронно, ПОСЛЕ первой отрисовки
+      // (в момент запуска tg.expand()/requestFullscreen() оно ещё 0). Наша
+      // сжимающаяся шапка (см. ниже) один раз измеряет вёрстку при загрузке —
+      // без этого события её измерения так и остаются рассчитаны под нулевой
+      // safe-area, и когда Telegram чуть позже подставляет настоящий отступ
+      // (сдвигая .frame через padding-top), верстка "разъезжается": score
+      // рисуется поверх строки с датой вместо того, чтобы идти под ней.
+      // Сигналим об этом через синтетический resize — на него уже подписан
+      // пересчёт (window.addEventListener('resize', measure) ниже по файлу).
+      window.dispatchEvent(new Event('resize'));
     };
     applySafeArea();
     tg.onEvent('safeAreaChanged', applySafeArea);
@@ -113,9 +123,9 @@
       calendarRow.style.height = calendarRow.style.paddingTop = calendarRow.style.opacity = '';
       calendarRow.style.pointerEvents = '';
       summary.style.paddingTop = summary.style.gap = '';
-      metricCards.forEach((card) => { card.style.height = card.style.padding = ''; });
+      metricCards.forEach((card) => { card.style.height = card.style.padding = card.style.opacity = ''; });
       metricCardChildren.forEach((children) => children.forEach((el) => { el.style.opacity = ''; }));
-      advice.style.height = advice.style.paddingTop = advice.style.paddingBottom = '';
+      advice.style.height = advice.style.paddingTop = advice.style.paddingBottom = advice.style.opacity = '';
       adviceChildren.forEach((el) => { el.style.opacity = ''; });
 
       const heroRectTop = heroFull.getBoundingClientRect().top;
@@ -209,8 +219,20 @@
       const adviceProgress = stagger(0.2, 0.6);
       const cardsProgress = stagger(0.55, 1);
 
+      // full.mascotTop/scoreTop измерены как ЛОКАЛЬНЫЕ координаты (относительно
+      // .hero-full), а compact.mascotTop/scoreTop — это уже VIEWPORT-цели
+      // (16/22px от реального safe-area). Чтобы честно лерпить одно к
+      // другому, сначала переводим "развёрнутые" координаты в те же
+      // viewport-термины: в естественном (нескролленном) состоянии верх
+      // .hero-full стоит ровно на framePaddingTop, значит viewport = то же
+      // самое + локальный отступ. Без этого пересчёта, как только
+      // framePaddingTop переставал быть нулём (safe-area в реальном
+      // Telegram), score рисовался поверх строки с датой.
+      const fullMascotViewport = framePaddingTop + full.mascotTop;
+      const fullScoreViewport = framePaddingTop + full.scoreTop;
+
       // Маскот: летит из развёрнутой позиции в свёрнутую.
-      mascot.style.top = (lerp(full.mascotTop, compact.mascotTop, progress) - heroTop) + 'px';
+      mascot.style.top = (lerp(fullMascotViewport, compact.mascotTop, progress) - heroTop) + 'px';
       mascot.style.left = lerp(full.mascotLeft, compact.mascotLeft, progress) + 'px';
       mascot.style.width = lerp(full.mascotWidth, compact.mascotWidth, progress) + 'px';
       mascot.style.height = lerp(full.mascotHeight, compact.mascotHeight, progress) + 'px';
@@ -221,7 +243,7 @@
       bgGradient.style.height = lerp(FULL_BG_HEIGHT, COMPACT_HEIGHT, progress) + 'px';
 
       // Score: полностью явный top (абсолютная локальная координата).
-      const scoreTop = lerp(full.scoreTop, compact.scoreTop, progress) - heroTop;
+      const scoreTop = lerp(fullScoreViewport, compact.scoreTop, progress) - heroTop;
       healthScore.style.top = scoreTop + 'px';
       // Внутренний padding-top у .health-score (в развёрнутом виде — отступ
       // под calendar-row) тоже схлопываем, иначе даже при верном top текст
