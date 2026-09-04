@@ -86,7 +86,7 @@ body {
   position: absolute;
   z-index: 1;
   left: -1px;
-  top: 154px;
+  top: calc(154px + var(--tg-safe-area-top));
   width: 150px;
   height: 110px;
 }
