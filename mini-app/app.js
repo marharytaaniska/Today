@@ -258,10 +258,16 @@
       // очереди: сначала дата, потом совет, затем Stress/Energy. Окна НЕ
       // пересекаются — иначе следующий блок начинал гаснуть раньше, чем
       // предыдущий успевал уйти (совет заметно таял почти сразу же).
+      //
+      // Карточки гаснут ПОЛНОСТЬЮ уже к 0.85, а не к 1.0: кнопка (см. ctaEase
+      // ниже) почти не двигается до самого конца и резко ускоряется только на
+      // последних процентах progress — если карточки гаснут ровно до 1.0,
+      // это ускорение накладывается на их ещё не погасший (10-35% opacity)
+      // хвост, и кнопка на мгновение проезжает по ещё чуть видимым карточкам.
       const stagger = (start, end) => Math.min(Math.max((progress - start) / (end - start), 0), 1);
-      const calendarProgress = stagger(0, 0.3);
-      const adviceProgress = stagger(0.3, 0.65);
-      const cardsProgress = stagger(0.65, 1);
+      const calendarProgress = stagger(0, 0.25);
+      const adviceProgress = stagger(0.25, 0.55);
+      const cardsProgress = stagger(0.55, 0.85);
 
       // full.mascotTop/scoreTop измерены как ЛОКАЛЬНЫЕ координаты (относительно
       // .hero-full), а compact.mascotTop/scoreTop — это уже VIEWPORT-цели
