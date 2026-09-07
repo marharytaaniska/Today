@@ -117,6 +117,7 @@ body {
    там, где не поддерживается, просто остаётся текущее выравнивание. */
 .score-num,
 .score-percent,
+.metric-label,
 .metric-value .num,
 .metric-value .unit,
 .metric-value .unit-inline {
