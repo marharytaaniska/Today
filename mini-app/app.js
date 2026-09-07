@@ -83,6 +83,19 @@
       && metricCards.length && advice && ctaButton && ctaSpacer && pinned) {
     const COMPACT_HEIGHT = 114; // высота свёрнутой зелёной плашки
     const FULL_BG_HEIGHT = 350; // высота полотна градиента в развёрнутом виде
+    // Ускоряет ВИЗУАЛЬНЫЙ переход "полная картина -> плашка": контент
+    // (маскот/score/opacity-затухания/кнопка) полностью доезжает до
+    // компактного вида уже за эту долю от collapseDistance, а не за всю
+    // дистанцию целиком. При этом сам collapseDistance (используется для
+    // heroTop и sticky-"прилипания" .hero-full) остаётся ФИЗИЧЕСКИ
+    // корректным — уменьшать его напрямую нельзя: тогда собственная жёсткая
+    // высота .hero-full после прилипания перестаёт совпадать с
+    // COMPACT_HEIGHT, и возвращается "призрачная" серая зона поверх кнопки/
+    // Pinned (см. фикс с framePaddingTop чуть выше). Поэтому ускоряем только
+    // progress в update() — visibility-цели считаются как "local = target -
+    // heroTop", а эта формула сама компенсирует то, что .hero-full к
+    // моменту progress=1 может физически ещё продолжать скроллиться.
+    const COLLAPSE_SPEED = 0.7;
     // Оценка высоты компактного блока score (число+% и заголовок) при
     // compact-размерах шрифта — нужна только чтобы центрировать его по
     // вертикали в плашке; см. вычисление compact.scoreTop ниже.
@@ -234,9 +247,12 @@
       if (!full) return;
 
       const scrollTop = scroller.scrollTop;
-      // Порог, при котором .hero-full "прилипает", — ровно collapseDistance
-      // (которая уже учитывает framePaddingTop — см. measure()).
-      const progress = Math.min(Math.max(scrollTop / collapseDistance, 0), 1);
+      // Визуальный прогресс (что показываем) намеренно "быстрее" физического
+      // порога прилипания .hero-full (что физически происходит со скроллом) —
+      // см. COLLAPSE_SPEED выше. heroTop ниже считается ОТДЕЛЬНО, напрямую от
+      // scrollTop/collapseDistance (без ускорения), поэтому остаётся
+      // физически верным независимо от того, что показывает progress.
+      const progress = Math.min(Math.max(scrollTop / (collapseDistance * COLLAPSE_SPEED), 0), 1);
 
       // Реальная viewport-позиция верхнего края .hero-full. До прилипания она
       // равна (framePaddingTop - scrollTop); "пол", на который она садится —
@@ -347,7 +363,19 @@
       // extraScroll докручивает кнопку дальше нормально (1:1), когда скролл
       // продолжается уже ПОСЛЕ полного сжатия шапки (иначе кнопка застряла
       // бы на месте вместо того, чтобы уезжать под шапку вместе с Pinned).
-      const ctaEase = progress * progress * progress * progress * progress;
+      // Важно: ease здесь считаем от ФИЗИЧЕСКОГО progress (без ускорения
+      // COLLAPSE_SPEED), а не от общего "визуального" progress выше. Причина:
+      // .pinned двигают не напрямую, а схлопыванием высоты .ctaSpacer, а у
+      // высоты есть жёсткий пол в 0 — .pinned физически не может обогнать
+      // обычный 1:1 скролл (только отстать от него, если высота ещё не
+      // схлопнута). Если бы кнопка (полностью на JS-позиционировании, такого
+      // пола не имеющая) доезжала до компактной точки быстрее, чем позволяет
+      // этот пол у .pinned, между ними на время открывался бы зазор — кнопка
+      // уже на месте, а Pinned ещё физически не успел доехать. Поэтому CTA/
+      // Pinned намеренно остаются на исходном, неускоренном темпе, даже
+      // когда сама шапка (маскот/score/прозрачности) сжимается быстрее.
+      const ctaProgress = Math.min(Math.max(scrollTop / collapseDistance, 0), 1);
+      const ctaEase = ctaProgress * ctaProgress * ctaProgress * ctaProgress * ctaProgress;
       const extraScroll = Math.max(scrollTop - collapseDistance, 0);
       const ctaViewportTarget = lerp(full.ctaDocTop, COMPACT_HEIGHT + 32, ctaEase) - extraScroll;
       ctaButton.style.top = (ctaViewportTarget + scrollTop) + 'px';
