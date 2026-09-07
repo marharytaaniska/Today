@@ -15,10 +15,7 @@
 
 <div class="frame" id="app">
 
-  <!-- Шапка со score. Маскот и число score — это ОДНИ И ТЕ ЖЕ элементы в обоих
-       состояниях: при скролле их top/размер/font-size непрерывно интерполируются
-       от развёрнутого к свёрнутому виду (см. app.js), как сжатие в стиле Apple,
-       а не подмена одного блока на другой. -->
+  <!-- Шапка со score -->
   <div class="hero-full" id="heroFull">
     <div class="bg-gradient" style="background-image:url('assets/bg-gradient.svg')"></div>
 
@@ -79,11 +76,6 @@
     <img src="assets/icon-plus.svg" alt="" />
     <span>Log Glucose</span>
   </button>
-  <!-- Резервирует место кнопки в потоке — сама кнопка становится
-       position:absolute в app.js (см. комментарий там), чтобы её движение
-       при скролле можно было придержать и не дать наехать на совет/карточки. -->
-  <div class="cta-spacer" id="ctaSpacer"></div>
-
   <!-- Pinned -->
   <section class="pinned">
     <div class="pinned-title">
